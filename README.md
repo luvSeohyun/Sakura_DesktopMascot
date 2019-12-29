@@ -1,5 +1,6 @@
 # Sakura_DesktopMascot
-[TOC]
+
+- [八重樱桌宠，从玩游戏到做游戏](#八重樱桌宠，从玩游戏到做游戏)
 
 ## 八重樱桌宠，从玩游戏到做游戏。
 
@@ -43,11 +44,7 @@
 
 可以通过修改Host解决GitHub下载过慢的问题，如果你不想了解细节步骤，请复制项目根目录下的**hosts**文件覆盖至**c:\windows\system32\drivers\etc**目录。
 
-如果你已有自定义的host，请使用
-
-[DNS查询工具]: http://tool.chinaz.com/dns/?type=1&amp;host=github.com&amp;ip=
-
-查询：
+如果你已有自定义的host，请使用[DNS查询工具](http://tool.chinaz.com/dns/?type=1&amp;host=github.com&amp;ip=)查询：
 
 - github.com
 - github.global.ssl.fastly.net
@@ -56,9 +53,9 @@
 
 这几个网址并将延迟最低的IP连同域名写入**c:\windows\system32\drivers\etc**中**hosts**文件末尾，注意中间的空格，例如：
 
-> 52.74.223.119  github.com
-> 69.171.248.65 github.global.ssl.fastly.net
-> 54.251.140.56 codeload.github.com
+> 52.74.223.119  github.com\
+> 69.171.248.65 github.global.ssl.fastly.net\
+> 54.251.140.56 codeload.github.com\
 > 185.199.111.153 assets-cdn.github.com
 
 ## 联系方式
