@@ -1,4 +1,4 @@
-# Sakura_DesktopMascot
+# ![PicChatGroup_Sakura](README.assets/PicChatGroup_Sakura.png)Sakura_DesktopMascot
 
 - [八重樱桌宠，从玩游戏到做游戏](#八重樱桌宠，从玩游戏到做游戏)
 - [说明](#说明)
@@ -7,7 +7,7 @@
 - [解决GitHub下载过慢](#解决GitHub下载过慢)
 - [联系方式](#联系方式)
 
-## ![image-20191229171237438](README.assets/image-20191229171237438.png)八重樱桌宠，从玩游戏到做游戏。
+## 八重樱桌宠，从玩游戏到做游戏。
 
 本项目的起因仅仅是因为我想把老婆放在桌面上，如果能帮助一些有兴趣但是没有基础的同学进入行业（Unity、游戏开发、Windows开发、Python、图形学）也是极好的。
 
