@@ -1,6 +1,11 @@
 # Sakura_DesktopMascot
 
 - [八重樱桌宠，从玩游戏到做游戏](#八重樱桌宠，从玩游戏到做游戏)
+- [说明](#说明)
+- [目前已知问题](#目前已知问题)
+- [日后待添加的功能](#日后待添加的功能)
+- [解决GitHub下载过慢](#解决GitHub下载过慢)
+- [联系方式](#联系方式)
 
 ## 八重樱桌宠，从玩游戏到做游戏。
 
@@ -53,9 +58,9 @@
 
 这几个网址并将延迟最低的IP连同域名写入**c:\windows\system32\drivers\etc**中**hosts**文件末尾，注意中间的空格，例如：
 
-> 52.74.223.119  github.com\
-> 69.171.248.65 github.global.ssl.fastly.net\
-> 54.251.140.56 codeload.github.com\
+> 52.74.223.119  github.com  
+> 69.171.248.65 github.global.ssl.fastly.net  
+> 54.251.140.56 codeload.github.com  
 > 185.199.111.153 assets-cdn.github.com
 
 ## 联系方式
