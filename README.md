@@ -1,4 +1,4 @@
-# ![PicChatGroup_Sakura](README.assets/PicChatGroup_Sakura.png)Sakura_DesktopMascot
+# <img src="README.assets/icon.png" alt="PicChatGroup_Sakura" style="zoom:75%;" />Sakura_DesktopMascot
 
 - [八重樱桌宠，从玩游戏到做游戏](#八重樱桌宠，从玩游戏到做游戏)
 - [说明](#说明)
