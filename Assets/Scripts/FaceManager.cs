@@ -3,26 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class FaceManager
+[ExecuteInEditMode]
+public class FaceManager : MonoBehaviour
 {
-    FaceManager() { }
-    static FaceManager _instance;
-    public static FaceManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-                _instance = new FaceManager();
-            return _instance;
-        }
-    }
     Dictionary<string, Face> _faceDic = new Dictionary<string, Face>();
-    int frameCount = 0;// 由于单例要在编辑器中运行存在很多问题，这里只处理数据，根据帧数判断是否刷新
 
-    public void UpdateFace(int currentFrame)
+    void LateUpdate()
     {
-        if (currentFrame == frameCount)
-            return;
         foreach (var face in _faceDic)
         {
             var valueEyeL = face.Value.valueGetterEye_L();
@@ -32,7 +19,6 @@ public class FaceManager
             SetFace(valueEyeR, face.Value.lastValueEye_R, face.Value.sprites.eye_R, face.Value.matEye_R);
             SetFace(valueMouth, face.Value.lastValueMouth, face.Value.sprites.mouth, face.Value.matMouth);
         }
-        frameCount = currentFrame;
     }
 
 

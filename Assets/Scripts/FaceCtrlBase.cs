@@ -15,10 +15,6 @@ public abstract class FaceCtrlBase : MonoBehaviour
 
     protected abstract void Start();
     protected abstract void Update();
-    protected virtual void LateUpdate()
-    {
-        FaceManager.Instance.UpdateFace(Time.frameCount);
-    }
     public virtual void OnValidate()
     {
         Start();

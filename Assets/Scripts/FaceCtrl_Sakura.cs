@@ -7,7 +7,8 @@ public class FaceCtrl_Sakura : FaceCtrlBase
 {
     //---------- Data --------------
     public FaceData faceData;
-    public AudioSource audioSource;
+    public FaceManager faceManager;
+    public AudioSource audioPlayer;
 
     //---------- Material ----------
     public Material matEye_L;
@@ -52,8 +53,8 @@ public class FaceCtrl_Sakura : FaceCtrlBase
 
     protected override void Start()
     {
-        if (faceData && matEye_L && matEye_R && matMouth)
-            FaceManager.Instance.AddFace(new Face(matEye_L, matEye_R, matMouth, faceData,
+        if (faceData && faceManager && matEye_L && matEye_R && matMouth)
+            faceManager.AddFace(new Face(matEye_L, matEye_R, matMouth, faceData,
                                          () => { return _valueEye_L; },
                                          () => { return _valueEye_R; },
                                          () => { return _valueMouth; }),
@@ -67,15 +68,15 @@ public class FaceCtrl_Sakura : FaceCtrlBase
         {
             Init();
             // 自动表情
-            if (audioSource)
+            if (audioPlayer)
             {
-                if (!audioSource.isPlaying && enableAutoBlink)
+                if (!audioPlayer.isPlaying && enableAutoBlink)
                 {
                     eyeCloseCtrl = Mathf.Clamp(AutoBlinkCtrl(minInterval, maxInterval, duration, blinkCurve), 0.01f, 1);
                 }
-                else if (audioSource.isPlaying && enableAutoMouth)
+                else if (audioPlayer.isPlaying && enableAutoMouth)
                 {
-                    mouthOpenCtrl = Mathf.Clamp(AutoMouthCtrl(audioSource, scale, band), 0.01f, 1);
+                    mouthOpenCtrl = Mathf.Clamp(AutoMouthCtrl(audioPlayer, scale, band), 0.01f, 1);
                 }
             }
             else
