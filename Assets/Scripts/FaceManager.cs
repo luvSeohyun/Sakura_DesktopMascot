@@ -21,7 +21,6 @@ public class FaceManager
 
     public void UpdateFace(int currentFrame)
     {
-        Debug.Log(currentFrame);
         if (currentFrame == frameCount)
             return;
         foreach (var face in _faceDic)
