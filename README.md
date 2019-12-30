@@ -23,6 +23,7 @@
   - 按住滚轮平移
   - 滑动滚轮缩放
 - 内置崩坏3中八重樱所有**白色气泡**触摸动作和语音（语音配对：MEMAUS、蹲街，式寂寞、想和陈sir啵嘴）
+- 含大部分表情（表情K帧：MEMAUS、夜星Noel）
 - 触摸分为摸头、一般触摸、特殊触摸
 - 支持置顶显示、开机自启、鼠标自动穿透、托盘图标
 - Shader根据UTS2修改而成
@@ -53,10 +54,10 @@
 
 如果你已有自定义的host，请使用[DNS查询工具](http://tool.chinaz.com/dns/?type=1&amp;host=github.com&amp;ip=)查询：
 
-- github.com
-- github.global.ssl.fastly.net
-- codeload.github.com
-- assets-cdn.github.com
+> github.com  
+> github.global.ssl.fastly.net  
+> codeload.github.com  
+> assets-cdn.github.com
 
 这几个网址并将延迟最低的IP连同域名写入**c:\windows\system32\drivers\etc**中**hosts**文件末尾，注意中间的空格，例如：
 
@@ -67,6 +68,6 @@
 
 ## 联系方式
 
-B站、知乎：喵刀Hime
-交流群：635385414
+B站、知乎：喵刀Hime  
+交流群：635385414  
 公众号：JasonMa233
