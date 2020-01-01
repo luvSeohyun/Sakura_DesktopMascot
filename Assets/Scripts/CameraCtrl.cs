@@ -31,7 +31,10 @@ public class CameraCtrl : MonoBehaviour
     float _rotate = 0f;
     float _viewAngle = 0f;
     Vector3 _screen2WorldOffset = Vector3.zero;
-
+    Vector3 _roleOrgPos;
+    Quaternion _roleOrgRot;
+    Vector3 _cameraOrgPos;
+    Quaternion _cameraOrgRot;
 
 
     private void Awake()
@@ -42,6 +45,12 @@ public class CameraCtrl : MonoBehaviour
         // 累计误差达到一定值则重置位置
         if (data.cameraPos.magnitude + data.rolePos.magnitude > 10000f)
             return;
+        // 保存原始位置
+        _roleOrgPos = _sakura.position;
+        _roleOrgRot = _sakura.rotation;
+        _cameraOrgPos = transform.position;
+        _cameraOrgRot = transform.rotation;
+        // 读取位置
         transform.position = data.cameraPos;
         transform.rotation = data.cameraRot;
         _sakura.position = data.rolePos;
@@ -125,5 +134,13 @@ public class CameraCtrl : MonoBehaviour
         newPos.y = Mathf.Clamp(newPos.y, 0 - dis, System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height - dis);
         _sakura.position = Camera.main.ScreenToWorldPoint(newPos);
 
+    }
+
+    public void ResetPos()
+    {
+        transform.position = _cameraOrgPos;
+        transform.rotation = _cameraOrgRot;
+        _sakura.position = _roleOrgPos;
+        _sakura.rotation = _roleOrgRot;
     }
 }

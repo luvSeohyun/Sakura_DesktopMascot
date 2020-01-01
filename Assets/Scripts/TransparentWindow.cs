@@ -204,10 +204,11 @@ public class TransparentWindow : MonoBehaviour
         _icon = Rainity.CreateSystemTrayIcon();
         _icon.AddItem("切换置顶显示", ToggleTopMost);
         _icon.AddItem("切换开机自启", ToggleRunOnStartup);
-        _icon.AddSeparator();
-        // _icon.AddItem("检查更新", CheckUpdate);// 必然闪退
-        _icon.AddItem("清除设置并退出", Clean);
-        _icon.AddSeparator();
+        // _icon.AddSeparator();
+        _icon.AddItem("重置位置", ResetPos);
+        _icon.AddItem("查看文档", OpenDoc);
+        _icon.AddItem("检查更新", CheckUpdate);
+        // _icon.AddSeparator();
         _icon.AddItem("退出", Exit);
     }
 
@@ -254,10 +255,19 @@ public class TransparentWindow : MonoBehaviour
         Application.Quit();
     }
 
-    void Clean()
+    void ResetPos()
     {
-        PlayerPrefs.DeleteAll();
-        Exit();
+        var cc = FindObjectOfType<CameraCtrl>();
+        if (cc)
+        {
+            cc.ResetPos();
+        }
+        UIDialog.Instance.ShowDialog("恢复初始位置", 3);
+    }
+
+    void OpenDoc()
+    {
+        Application.OpenURL("https://github.com/Jason-Ma-233/Sakura_DesktopMascot");
     }
 
     void AutoUpdate()

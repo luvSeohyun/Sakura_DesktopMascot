@@ -18,6 +18,8 @@ public class Test : MonoBehaviour
     {
         // TestMyJson();
         // EXETest();
+
+        Debug.Log(GameObject.Find("SakuraRoot/Sakura").transform.position);
     }
 
     void EXETest()
