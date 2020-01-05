@@ -390,20 +390,13 @@ public class Rainity : MonoBehaviour
         return null;
     }
 
-    //Currently causes random editor crashes, but works in build
-    private static List<SystemTray> trays = new List<SystemTray>();
     /// <summary>
-    /// <para>Creates a system tray icon in the task bar.  The returned SystemTray object can be used to add context menus.</para>
+    /// <para>(Will cause the editor to crash) Creates a system tray icon in the task bar.  The returned SystemTray object can be used to add context menus.</para>
     /// </summary>
     /// <returns>The newly created SystemTray object</returns>
     public static SystemTray CreateSystemTrayIcon()
     {
-        if (!Application.isEditor)
-        {
-            trays.Add(new SystemTray());
-            return trays[trays.Count - 1];
-        }
-        return null;
+        return new SystemTray();
     }
 
     /// <summary>
@@ -528,9 +521,5 @@ public class Rainity : MonoBehaviour
     {
         SetupDesktop.appQuitting = true;
         SetupDesktop.UnhookHook();
-        foreach (SystemTray tray in trays)
-        {
-            tray.Dispose();
-        }
     }
 }

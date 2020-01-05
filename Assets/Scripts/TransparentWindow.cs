@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.UI;
+// using UnityEngine.UI;
 
 public class TransparentWindow : MonoBehaviour
 {
@@ -26,6 +27,9 @@ public class TransparentWindow : MonoBehaviour
     int _xOffset = 83;
     [SerializeField]
     int _yOffset = 0;
+    [SerializeField]
+    Texture2D _enableTexture;
+    Image _enableImage;
 
     #region 导入API
 
@@ -116,6 +120,8 @@ public class TransparentWindow : MonoBehaviour
 
         MARGINS margins = new MARGINS() { cxLeftWidth = -1 };
 
+        LoadIconFile(Application.persistentDataPath + "/Checkmark.png");
+
         //1：忽略大小；2：忽略位置；4：忽略Z顺序
         SetWindowPos(windowHandle, HWND_TOPMOST, _xOffset, _yOffset,
         System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width + 83,
@@ -198,18 +204,33 @@ public class TransparentWindow : MonoBehaviour
     }
 
     SystemTray _icon;
+    System.Windows.Forms.ToolStripItem _topmost, _runOnStart;
+
     // 创建托盘图标、添加选项
     void AddSystemTray()
     {
-        _icon = Rainity.CreateSystemTrayIcon();
-        _icon.AddItem("切换置顶显示", ToggleTopMost);
-        _icon.AddItem("切换开机自启", ToggleRunOnStartup);
-        // _icon.AddSeparator();
+        _icon = new SystemTray();
+        _topmost = _icon.AddItem("置顶显示", ToggleTopMost);
+        _runOnStart = _icon.AddItem("开机自启", ToggleRunOnStartup);
         _icon.AddItem("重置位置", ResetPos);
+        _icon.AddSeparator();
         _icon.AddItem("查看文档", OpenDoc);
         _icon.AddItem("检查更新", CheckUpdate);
-        // _icon.AddSeparator();
+        _icon.AddSeparator();
         _icon.AddItem("退出", Exit);
+        _icon.AddDoubleClickEvent(ShowRole);
+
+        _topmost.Image = DataModel.Instance.Data.isTopMost ? _enableImage : null;
+        _runOnStart.Image = DataModel.Instance.Data.isRunOnStartup ? _enableImage : null;
+    }
+
+    void LoadIconFile(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            File.WriteAllBytes(filePath, _enableTexture.EncodeToPNG());
+        }
+        _enableImage = Image.FromFile(filePath);
     }
 
     void ToggleTopMost()
@@ -218,16 +239,8 @@ public class TransparentWindow : MonoBehaviour
         DataModel.Instance.Data.isTopMost = isTop;
         DataModel.Instance.SaveData();
         DataModel.Instance.ReloadData();
-        if (isTop)
-        {
-            SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 2);
-            UIDialog.Instance.ShowDialog("开启置顶", 3);
-        }
-        else
-        {
-            SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
-            UIDialog.Instance.ShowDialog("关闭置顶", 3);
-        }
+        SetWindowPos(windowHandle, isTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
+        _topmost.Image = isTop ? _enableImage : null;
     }
 
     void ToggleRunOnStartup()
@@ -236,15 +249,14 @@ public class TransparentWindow : MonoBehaviour
         DataModel.Instance.Data.isRunOnStartup = isRun;
         DataModel.Instance.SaveData();
         DataModel.Instance.ReloadData();
+        _runOnStart.Image = isRun ? _enableImage : null;
         if (isRun)
         {
             Rainity.AddToStartup();
-            UIDialog.Instance.ShowDialog("开启开机自启", 3);
         }
         else
         {
             Rainity.RemoveFromStartup();
-            UIDialog.Instance.ShowDialog("关闭开机自启", 3);
         }
 
     }
@@ -262,7 +274,7 @@ public class TransparentWindow : MonoBehaviour
         {
             cc.ResetPos();
         }
-        UIDialog.Instance.ShowDialog("恢复初始位置", 3);
+        _icon.ShowNotification(3, "嘤嘤嘤", "嘤嘤怪回到了初始位置");
     }
 
     void OpenDoc()
@@ -295,8 +307,14 @@ public class TransparentWindow : MonoBehaviour
         p.Start();
     }
 
+    void ShowRole()
+    {
+        SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 2);
+        SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
+    }
+
     void OnRenderImage(RenderTexture from, RenderTexture to)
     {
-        Graphics.Blit(from, to, m_Material);
+        UnityEngine.Graphics.Blit(from, to, m_Material);
     }
 }

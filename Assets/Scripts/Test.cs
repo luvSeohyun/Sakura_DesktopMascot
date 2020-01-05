@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.IO;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Text;
+using System.Runtime.InteropServices;
 
 public class Test : MonoBehaviour
 {
@@ -19,7 +24,52 @@ public class Test : MonoBehaviour
         // TestMyJson();
         // EXETest();
 
-        Debug.Log(GameObject.Find("SakuraRoot/Sakura").transform.position);
+    }
+    public Texture2D texture;
+    public NotifyIcon trayIcon;
+    public System.Windows.Forms.ContextMenu trayMenu;
+
+    private ContextMenuStrip contextMenuStrip;
+
+
+    private void OnEnable()
+    {
+        AddSystemTray();
+    }
+
+    private void OnDisable()
+    {
+        _icon.Dispose();
+    }
+
+    SystemTray _icon;
+    // 创建托盘图标、添加选项
+    void AddSystemTray()
+    {
+        _icon = new SystemTray();
+        // _icon.AddItem("切换置顶显示", () => { Debug.Log("切换置顶显示"); });
+        // var icon = _icon.trayMenu.Items.Add("icon", SystemTray.Texture2DToImage(texture), null);
+        // Debug.Log(texture.EncodeToPNG());
+        // Debug.Log(new MemoryStream(texture.EncodeToPNG()));
+        Debug.Log(UnityEngine.Application.persistentDataPath);
+        File.WriteAllBytes(UnityEngine.Application.dataPath + "/Checkmark.png", texture.EncodeToPNG());
+        Debug.Log(Image.FromFile(UnityEngine.Application.dataPath + "/Checkmark.png"));
+        _icon.AddSeparator();
+        _icon.AddItem("查看文档", () => { Debug.Log("查看文档"); });
+        _icon.AddSeparator();
+        _icon.AddItem("退出", () => { _icon.ShowNotification(3, "yyy", "exit"); });
+        _icon.AddDoubleClickEvent(() => { Debug.Log("click"); });
+    }
+
+
+    void IconEvent(object sender, EventArgs e)
+    {
+        Debug.Log(66666666666666);
+    }
+    void IconEvent2(object sender, EventArgs e)
+    {
+        // Debug.Log(((MenuItem)sender).Text + "    " + e);
+        Debug.Log(777);
     }
 
     void EXETest()
