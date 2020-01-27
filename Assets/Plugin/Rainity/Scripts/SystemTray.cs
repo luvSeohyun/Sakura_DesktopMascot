@@ -17,7 +17,7 @@ public class SystemTray : IDisposable
     public NotifyIcon trayIcon;
     public ContextMenuStrip trayMenu;
 
-    public SystemTray()
+    public SystemTray(Icon icon)
     {
 
         trayMenu = new ContextMenuStrip();
@@ -25,16 +25,7 @@ public class SystemTray : IDisposable
         trayIcon = new NotifyIcon();
         trayIcon.Text = UnityEngine.Application.productName;
 
-        if (UnityEngine.Application.isEditor)
-            trayIcon.Icon = new Icon(SystemIcons.Application, 40, 40);
-        else
-        {
-            ushort uicon;
-            StringBuilder strB = new StringBuilder(AppDomain.CurrentDomain.BaseDirectory + "\\" + UnityEngine.Application.productName + ".exe");
-            IntPtr handle = ExtractAssociatedIcon(IntPtr.Zero, strB, out uicon);
-            Icon ico = Icon.FromHandle(handle);
-            trayIcon.Icon = ico;
-        }
+        trayIcon.Icon = icon;
 
         trayIcon.ContextMenuStrip = trayMenu;
         trayIcon.Visible = true;

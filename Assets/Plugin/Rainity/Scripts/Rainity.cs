@@ -394,10 +394,10 @@ public class Rainity : MonoBehaviour
     /// <para>(Will cause the editor to crash) Creates a system tray icon in the task bar.  The returned SystemTray object can be used to add context menus.</para>
     /// </summary>
     /// <returns>The newly created SystemTray object</returns>
-    public static SystemTray CreateSystemTrayIcon()
-    {
-        return new SystemTray();
-    }
+    // public static SystemTray CreateSystemTrayIcon()
+    // {
+    //     return new SystemTray();
+    // }
 
     /// <summary>
     /// <para>Opens the specified file or directory using the default program associated with the file's file extension.</para>

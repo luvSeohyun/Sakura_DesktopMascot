@@ -27,9 +27,13 @@ public class TransparentWindow : MonoBehaviour
     int _xOffset = 83;
     [SerializeField]
     int _yOffset = 0;
+    [Header("Textures (Unsupported compression!)")]
     [SerializeField]
     Texture2D _enableTexture;
+    [SerializeField]
+    Texture2D _systemTrayTexture;
     Image _enableImage;
+    Icon _systemTrayIcon;
 
     #region 导入API
 
@@ -120,7 +124,7 @@ public class TransparentWindow : MonoBehaviour
 
         MARGINS margins = new MARGINS() { cxLeftWidth = -1 };
 
-        LoadIconFile(Application.persistentDataPath + "/Checkmark.png");
+        LoadIconFile(Application.persistentDataPath);
 
         //1：忽略大小；2：忽略位置；4：忽略Z顺序
         SetWindowPos(windowHandle, HWND_TOPMOST, _xOffset, _yOffset,
@@ -209,7 +213,7 @@ public class TransparentWindow : MonoBehaviour
     // 创建托盘图标、添加选项
     void AddSystemTray()
     {
-        _icon = new SystemTray();
+        _icon = new SystemTray(_systemTrayIcon);
         _topmost = _icon.AddItem("置顶显示", ToggleTopMost);
         _runOnStart = _icon.AddItem("开机自启", ToggleRunOnStartup);
         _icon.AddItem("重置位置", ResetPos);
@@ -224,13 +228,22 @@ public class TransparentWindow : MonoBehaviour
         _runOnStart.Image = DataModel.Instance.Data.isRunOnStartup ? _enableImage : null;
     }
 
-    void LoadIconFile(string filePath)
+    void LoadIconFile(string basePath)
     {
-        if (!File.Exists(filePath))
+        string enableImagePath = basePath + "/Checkmark.png";
+        string iconPath = basePath + "/Icon.png";
+        if (!File.Exists(enableImagePath))
         {
-            File.WriteAllBytes(filePath, _enableTexture.EncodeToPNG());
+            File.WriteAllBytes(enableImagePath, _enableTexture.EncodeToPNG());
         }
-        _enableImage = Image.FromFile(filePath);
+        _enableImage = Image.FromFile(enableImagePath);
+
+        if (!File.Exists(iconPath))
+        {
+            File.WriteAllBytes(iconPath, _systemTrayTexture.EncodeToPNG());
+        }
+        // 不支持压缩
+        _systemTrayIcon = Icon.FromHandle((new Bitmap(iconPath)).GetHicon());
     }
 
     void ToggleTopMost()

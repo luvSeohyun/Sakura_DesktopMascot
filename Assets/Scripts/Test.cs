@@ -16,50 +16,57 @@ public class Test : MonoBehaviour
         public long testB;
     }
 
-    public GameObject[] go;
-    public float test;
+    // public GameObject[] go;
+    // public float test;
 
     void Start()
     {
         // TestMyJson();
         // EXETest();
 
+
     }
-    public Texture2D texture;
-    public NotifyIcon trayIcon;
-    public System.Windows.Forms.ContextMenu trayMenu;
 
-    private ContextMenuStrip contextMenuStrip;
-
-
-    private void OnEnable()
+    private void Update()
     {
-        AddSystemTray();
     }
 
-    private void OnDisable()
-    {
-        _icon.Dispose();
-    }
 
-    SystemTray _icon;
-    // 创建托盘图标、添加选项
-    void AddSystemTray()
-    {
-        _icon = new SystemTray();
-        // _icon.AddItem("切换置顶显示", () => { Debug.Log("切换置顶显示"); });
-        // var icon = _icon.trayMenu.Items.Add("icon", SystemTray.Texture2DToImage(texture), null);
-        // Debug.Log(texture.EncodeToPNG());
-        // Debug.Log(new MemoryStream(texture.EncodeToPNG()));
-        Debug.Log(UnityEngine.Application.persistentDataPath);
-        File.WriteAllBytes(UnityEngine.Application.dataPath + "/Checkmark.png", texture.EncodeToPNG());
-        Debug.Log(Image.FromFile(UnityEngine.Application.dataPath + "/Checkmark.png"));
-        _icon.AddSeparator();
-        _icon.AddItem("查看文档", () => { Debug.Log("查看文档"); });
-        _icon.AddSeparator();
-        _icon.AddItem("退出", () => { _icon.ShowNotification(3, "yyy", "exit"); });
-        _icon.AddDoubleClickEvent(() => { Debug.Log("click"); });
-    }
+    // public Texture2D texture;
+    // public NotifyIcon trayIcon;
+    // public System.Windows.Forms.ContextMenu trayMenu;
+
+    // private ContextMenuStrip contextMenuStrip;
+
+
+    // private void OnEnable()
+    // {
+    //     AddSystemTray();
+    // }
+
+    // private void OnDisable()
+    // {
+    //     _icon.Dispose();
+    // }
+
+    // SystemTray _icon;
+    // // 创建托盘图标、添加选项
+    // void AddSystemTray()
+    // {
+    //     _icon = new SystemTray();
+    //     // _icon.AddItem("切换置顶显示", () => { Debug.Log("切换置顶显示"); });
+    //     // var icon = _icon.trayMenu.Items.Add("icon", SystemTray.Texture2DToImage(texture), null);
+    //     // Debug.Log(texture.EncodeToPNG());
+    //     // Debug.Log(new MemoryStream(texture.EncodeToPNG()));
+    //     Debug.Log(UnityEngine.Application.persistentDataPath);
+    //     File.WriteAllBytes(UnityEngine.Application.dataPath + "/Checkmark.png", texture.EncodeToPNG());
+    //     Debug.Log(Image.FromFile(UnityEngine.Application.dataPath + "/Checkmark.png"));
+    //     _icon.AddSeparator();
+    //     _icon.AddItem("查看文档", () => { Debug.Log("查看文档"); });
+    //     _icon.AddSeparator();
+    //     _icon.AddItem("退出", () => { _icon.ShowNotification(3, "yyy", "exit"); });
+    //     _icon.AddDoubleClickEvent(() => { Debug.Log("click"); });
+    // }
 
 
     void IconEvent(object sender, EventArgs e)
