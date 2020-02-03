@@ -40,11 +40,11 @@ Shader "Custom/MakeTransparent"
                 float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv));
                 
                 // return depth;
-                return lerp(tex2D(_MainTex, i.uv), float4(0, 0, 0, 0), step(0.9, depth));
+                return tex2D(_MainTex, i.uv); 
+                // return lerp(tex2D(_MainTex, i.uv), float4(0, 0, 0, 0), step(0.9, depth));
             }
             ENDCG
             
         }
     }
-    
 }

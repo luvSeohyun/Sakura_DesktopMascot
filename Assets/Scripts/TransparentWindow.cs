@@ -20,8 +20,8 @@ public class TransparentWindow : MonoBehaviour
         }
     }
 
-    [SerializeField]
-    private Material m_Material;
+    // [SerializeField]
+    // private Material m_Material;
 
     [SerializeField]
     int _xOffset = 83;
@@ -119,7 +119,9 @@ public class TransparentWindow : MonoBehaviour
 
     void Start()
     {
-        Camera.main.depthTextureMode = DepthTextureMode.DepthNormals;
+        // Camera.main.depthTextureMode = DepthTextureMode.Depth;
+        // Camera.main.clearFlags = CameraClearFlags.Color;
+
         if (Application.isEditor) return;
 
         MARGINS margins = new MARGINS() { cxLeftWidth = -1 };
@@ -326,8 +328,8 @@ public class TransparentWindow : MonoBehaviour
         SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
     }
 
-    void OnRenderImage(RenderTexture from, RenderTexture to)
-    {
-        UnityEngine.Graphics.Blit(from, to, m_Material);
-    }
+    // void OnRenderImage(RenderTexture from, RenderTexture to)
+    // {
+    //     UnityEngine.Graphics.Blit(from, to, m_Material);
+    // }
 }

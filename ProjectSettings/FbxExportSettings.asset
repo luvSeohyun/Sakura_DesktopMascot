@@ -12,9 +12,12 @@
         "integrationSavePath": "E:\\Code\\Git\\Sakura_DesktopMascot",
         "selectedDCCApp": 0,
         "prefabSavePaths": [
+            "res/Herugaa",
             "."
         ],
         "fbxSavePaths": [
+            "res/Sakura",
+            "res/Herugaa",
             "."
         ],
         "selectedFbxPath": 0,
@@ -22,10 +25,10 @@
         "dccOptionNames": [],
         "dccOptionPaths": [],
         "exportModelSettingsSerialize": {
-            "exportFormat": 0,
+            "exportFormat": 1,
             "animatedSkinnedMesh": false,
-            "mayaCompatibleNaming": true,
-            "include": 2,
+            "mayaCompatibleNaming": false,
+            "include": 0,
             "lodLevel": 0,
             "objectPosition": 0,
             "exportUnrendered": true
@@ -33,7 +36,7 @@
         "convertToPrefabSettingsSerialize": {
             "exportFormat": 0,
             "animatedSkinnedMesh": false,
-            "mayaCompatibleNaming": true
+            "mayaCompatibleNaming": false
         }
     }
 }
