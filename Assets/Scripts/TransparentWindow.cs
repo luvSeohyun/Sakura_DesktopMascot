@@ -230,21 +230,16 @@ public class TransparentWindow : MonoBehaviour
         _runOnStart.Image = DataModel.Instance.Data.isRunOnStartup ? _enableImage : null;
     }
 
+    //! 不支持压缩
     void LoadIconFile(string basePath)
     {
         string enableImagePath = basePath + "/Checkmark.png";
         string iconPath = basePath + "/Icon.png";
-        if (!File.Exists(enableImagePath))
-        {
-            File.WriteAllBytes(enableImagePath, _enableTexture.EncodeToPNG());
-        }
+
+        File.WriteAllBytes(enableImagePath, _enableTexture.EncodeToPNG());
         _enableImage = Image.FromFile(enableImagePath);
 
-        if (!File.Exists(iconPath))
-        {
-            File.WriteAllBytes(iconPath, _systemTrayTexture.EncodeToPNG());
-        }
-        // 不支持压缩
+        File.WriteAllBytes(iconPath, _systemTrayTexture.EncodeToPNG());
         _systemTrayIcon = Icon.FromHandle((new Bitmap(iconPath)).GetHicon());
     }
 
