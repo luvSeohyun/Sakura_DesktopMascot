@@ -1,4 +1,4 @@
-# <img src="README.assets/icon.png" alt="icon" style="zoom:50%;" />Sakura_DesktopMascot
+# <img src="README.assets/icon.png" alt="icon" style="zoom:50%;" />Yae Sakura Desktop Mascot
 
 - [八重樱桌宠，从玩游戏到做游戏](#八重樱桌宠从玩游戏到做游戏)
 - [Features](#Features)
@@ -9,7 +9,7 @@
 
 ## 八重樱桌宠，从玩游戏到做游戏。
 
-本项目的起因仅仅是因为我想把老婆放在桌面上，如果能帮助一些有兴趣但是没有基础的同学进入行业（Unity、游戏开发、Windows开发、Python、图形学）也是极好的。
+本项目的起因仅仅是因为我想把老婆放在桌面上，如果能帮助一些有兴趣但是没有基础的同学进入行业（Unity、游戏开发、Windows开发、Python、图形学等）也是极好的。
 
 桌宠的完善依靠各位路过的舰长的努力，如语音配对、表情等，在此感谢愿意伸出援手的舰长们。
 
