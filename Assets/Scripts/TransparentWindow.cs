@@ -20,13 +20,9 @@ public class TransparentWindow : MonoBehaviour
         }
     }
 
-    // [SerializeField]
-    // private Material m_Material;
+    [SerializeField]
+    Material _material;
 
-    [SerializeField]
-    int _xOffset = 83;
-    [SerializeField]
-    int _yOffset = 0;
     [Header("Textures (Unsupported compression!)")]
     [SerializeField]
     Texture2D _enableTexture;
@@ -34,6 +30,8 @@ public class TransparentWindow : MonoBehaviour
     Texture2D _systemTrayTexture;
     Image _enableImage;
     Icon _systemTrayIcon;
+    int _xOffset = 0;
+    int _yOffset = 0;
 
     #region 导入API
 
@@ -62,41 +60,22 @@ public class TransparentWindow : MonoBehaviour
     public static extern long GetWindowLong(IntPtr hwnd, int nIndex);
 
     [DllImport("user32.dll")]
-    private static extern IntPtr GetActiveWindow();
-
-    [DllImport("user32.dll")]
     private static extern int SetWindowLong(IntPtr hWnd, int nIndex, uint dwNewLong);
 
     [DllImport("Dwmapi.dll")]
     private static extern uint DwmExtendFrameIntoClientArea(IntPtr hWnd, ref MARGINS margins);
 
+    //uFlags = 1：忽略大小；2：忽略位置；4：忽略Z顺序
     [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
     private static extern int SetWindowPos(IntPtr hwnd, IntPtr hwndInsertAfter, int x, int y, int cx, int cy, int uFlags);
-
-    [DllImport("user32.dll")]
-    static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-
-    [DllImport("user32.dll", EntryPoint = "SetLayeredWindowAttributes")]
-    static extern int SetLayeredWindowAttributes(IntPtr hwnd, int crKey, byte bAlpha, int dwFlags);
-
-    [DllImport("User32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
 
     const int GWL_STYLE = -16;
     const int GWL_EXSTYLE = -20;
     const uint WS_POPUP = 0x80000000;
     const uint WS_VISIBLE = 0x10000000;
-
-    const uint WS_EX_TOPMOST = 0x00000008;
     const uint WS_EX_LAYERED = 0x00080000;
     const uint WS_EX_TRANSPARENT = 0x00000020;
     const uint WS_EX_TOOLWINDOW = 0x00000080;//隐藏图标
-
-    const int SWP_FRAMECHANGED = 0x0020;
-    const int SWP_SHOWWINDOW = 0x0040;
-    const int LWA_ALPHA = 2;
-
-
     private IntPtr HWND_TOPMOST = new IntPtr(-1);
     private IntPtr HWND_NOTOPMOST = new IntPtr(-2);
 
@@ -115,50 +94,54 @@ public class TransparentWindow : MonoBehaviour
     }
 
     IntPtr _windowHandle = IntPtr.Zero;
-    Vector2Int _offset = Vector2Int.zero;
 
     void Start()
     {
-        // Camera.main.depthTextureMode = DepthTextureMode.Depth;
-        // Camera.main.clearFlags = CameraClearFlags.Color;
 
         if (Application.isEditor) return;
+        Application.targetFrameRate = 80;
 
-        MARGINS margins = new MARGINS() { cxLeftWidth = -1 };
-
+        // 写入icon并读取
         LoadIconFile(Application.persistentDataPath);
 
-        //1：忽略大小；2：忽略位置；4：忽略Z顺序
-        SetWindowPos(windowHandle, HWND_TOPMOST, _xOffset, _yOffset,
-        System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width + 83,
-        System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height, 4);
+        // 设置窗口大小、位置
+        SetWindowPosRect();
 
         // Set properties of the window
         // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms633591%28v=vs.85%29.aspx
         SetWindowLong(windowHandle, GWL_STYLE, WS_POPUP | WS_VISIBLE);
         SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT); // 实现鼠标穿透
 
+        MARGINS margins = new MARGINS() { cxLeftWidth = -1 };
         // Extend the window into the client area
         //See: https://msdn.microsoft.com/en-us/library/windows/desktop/aa969512%28v=vs.85%29.aspx 
         DwmExtendFrameIntoClientArea(windowHandle, ref margins);
 
-        SetWindowPos(windowHandle, DataModel.Instance.Data.isTopMost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
+        SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 2);
+        if (!DataModel.Instance.Data.isTopMost)
+            SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
+
 
         AddSystemTray();
 
         AutoUpdate();
     }
 
-    private void LateUpdate()
-    {
-
-        if (Application.isEditor) return;
-
-        CursorPenetrate();
-    }
-
     bool _isInRoleRect = false;
     Vector2Int _lastMousePos = Vector2Int.zero;
+
+    public void SetMousePenetrate(bool isPenetrate)
+    {
+        var s = GetWindowLong(windowHandle, GWL_EXSTYLE);
+        if (isPenetrate)
+        {
+            SetWindowLong(windowHandle, GWL_EXSTYLE, (uint)(s | WS_EX_TRANSPARENT));
+        }
+        else
+        {
+            SetWindowLong(windowHandle, GWL_EXSTYLE, (uint)(s & ~WS_EX_TRANSPARENT));
+        }
+    }
 
     void CursorPenetrate()
     {
@@ -204,10 +187,36 @@ public class TransparentWindow : MonoBehaviour
         return mousePos - leftBottom;
     }
 
+    void SetWindowPosRect()
+    {
+        // 获取多屏幕的总宽度和最高高度，以及任务栏offset
+        int width = 0, height = 0;
+        foreach (var screen in System.Windows.Forms.Screen.AllScreens)
+        {
+            width += screen.Bounds.Width;
+            if (screen.Bounds.Height > height)
+            {
+                height = screen.Bounds.Height;
+            }
+            if (screen.Primary)
+            {
+                _xOffset = screen.WorkingArea.X;
+                _yOffset = screen.WorkingArea.Y;
+            }
+        }
+
+        if (width == 0 || height == 0)
+            Debug.LogError("获取分辨率失败");
+
+        SetWindowPos(windowHandle, HWND_TOPMOST, _xOffset, _yOffset, width, height, 4);
+    }
+
     float GetMouseMove(Vector2 last, Vector2 current)
     {
         return Mathf.Abs(current.x - last.x) + Mathf.Abs(current.y - last.y);
     }
+
+    #region 托盘
 
     SystemTray _icon;
     System.Windows.Forms.ToolStripItem _topmost, _runOnStart;
@@ -224,7 +233,8 @@ public class TransparentWindow : MonoBehaviour
         _icon.AddItem("检查更新", CheckUpdate);
         _icon.AddSeparator();
         _icon.AddItem("退出", Exit);
-        _icon.AddDoubleClickEvent(ShowRole);
+        _icon.AddDoubleClickEvent(ToggleTopMost);
+        _icon.AddSingleClickEvent(ShowRole);
 
         _topmost.Image = DataModel.Instance.Data.isTopMost ? _enableImage : null;
         _runOnStart.Image = DataModel.Instance.Data.isRunOnStartup ? _enableImage : null;
@@ -283,8 +293,8 @@ public class TransparentWindow : MonoBehaviour
         if (cc)
         {
             cc.ResetPos();
+            _icon.ShowNotification(3, "嘤嘤嘤", "嘤嘤怪回到了初始位置");
         }
-        _icon.ShowNotification(3, "嘤嘤嘤", "嘤嘤怪回到了初始位置");
     }
 
     void OpenDoc()
@@ -322,9 +332,11 @@ public class TransparentWindow : MonoBehaviour
         SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 2);
         SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
     }
+    #endregion
 
-    // void OnRenderImage(RenderTexture from, RenderTexture to)
-    // {
-    //     UnityEngine.Graphics.Blit(from, to, m_Material);
-    // }
+    // 配合TAA，用Gamma减少TAA的Ghosting
+    private void OnRenderImage(RenderTexture src, RenderTexture dest)
+    {
+        UnityEngine.Graphics.Blit(src, dest, _material);
+    }
 }

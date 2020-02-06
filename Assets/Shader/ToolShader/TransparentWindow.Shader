@@ -1,8 +1,9 @@
-Shader "Custom/MakeTransparent"
+Shader "Custom/RTAlphaGamma"
 {
     Properties
     {
-        _MainTex ("Base (RGB)", 2D) = "white" { }
+        // _MainTex ("Base (RGB)", 2D) = "white" { }
+        _Gamma ("Gamma", Range(1, 5)) = 2.5
     }
     SubShader
     {
@@ -19,7 +20,7 @@ Shader "Custom/MakeTransparent"
             #include "UnityCG.cginc"
             
             sampler2D _MainTex;
-            sampler2D _CameraDepthTexture;
+            float _Gamma;
             
             struct v2f
             {
@@ -37,11 +38,9 @@ Shader "Custom/MakeTransparent"
             
             float4 PixelShaderFunction(v2f i): SV_Target
             {
-                float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv));
-                
-                // return depth;
-                return tex2D(_MainTex, i.uv); 
-                // return lerp(tex2D(_MainTex, i.uv), float4(0, 0, 0, 0), step(0.9, depth));
+                float4 col = tex2D(_MainTex, i.uv);
+                col.a = pow(col.a, _Gamma);
+                return col;
             }
             ENDCG
             

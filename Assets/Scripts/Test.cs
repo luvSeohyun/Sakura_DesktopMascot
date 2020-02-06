@@ -10,17 +10,15 @@ using System.Runtime.InteropServices;
 
 public class Test : MonoBehaviour
 {
-    // [SerializeField]
-    // private Material m_Material;
-
-    // private void Start()
-    // {
-    //     Camera.main.depthTextureMode = DepthTextureMode.Depth;
-
-    // }
-    // void OnRenderImage(RenderTexture from, RenderTexture to)
-    // {
-    //     UnityEngine.Graphics.Blit(from, to, m_Material);
-    // }
-
+    private void Start()
+    {
+        foreach (var screen in System.Windows.Forms.Screen.AllScreens)
+        {
+            Debug.Log(screen.DeviceName);
+            Debug.Log(screen.WorkingArea);
+            Debug.Log(screen.Bounds);
+            Debug.Log(screen.BitsPerPixel);
+            Debug.Log(screen.Primary);
+        }
+    }
 }

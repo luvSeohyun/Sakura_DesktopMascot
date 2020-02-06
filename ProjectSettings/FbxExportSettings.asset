@@ -16,11 +16,12 @@
             "."
         ],
         "fbxSavePaths": [
+            "res/Sakura_3.7",
             "res/Sakura",
             "res/Herugaa",
             "."
         ],
-        "selectedFbxPath": 0,
+        "selectedFbxPath": 1,
         "selectedPrefabPath": 0,
         "dccOptionNames": [],
         "dccOptionPaths": [],

@@ -24,12 +24,14 @@ public class DataModel
     DataModel() { }
 
     public UserData Data { get; set; }
+    readonly string _dataPath = Application.productName + "_UserData";
+    readonly string _dataVersion = "2.6";// 当大改数据结构时手动更新版本以重新生成数据
 
     public void Init(Vector3 _rolePos, Quaternion _roleRot, Vector3 _cameraPos, Quaternion _cameraRot)
     {
-        if (PlayerPrefs.HasKey(Application.productName + "_UserData"))
+        if (PlayerPrefs.HasKey(_dataPath))
         {
-            var strData = PlayerPrefs.GetString(Application.productName + "_UserData");
+            var strData = PlayerPrefs.GetString(_dataPath);
             Data = JsonUtility.FromJson<UserData>(strData);
             // 版本新增值初始化
             if (Data.updateTime == 0)
@@ -40,29 +42,32 @@ public class DataModel
         }
         else
         {
-            Data = new UserData() { rolePos = _rolePos,
-                                    roleRot = _roleRot,
-                                    cameraPos = _cameraPos,
-                                    cameraRot = _cameraRot,
-                                    isTopMost = false,
-                                    isRunOnStartup = false,
-                                    updateTime = DateTime.Now.ToFileTime()};
+            Data = new UserData()
+            {
+                rolePos = _rolePos,
+                roleRot = _roleRot,
+                cameraPos = _cameraPos,
+                cameraRot = _cameraRot,
+                isTopMost = false,
+                isRunOnStartup = false,
+                updateTime = DateTime.Now.ToFileTime()
+            };
             var strData = JsonUtility.ToJson(Data);
-            PlayerPrefs.SetString(Application.productName + "_UserData", strData);
+            PlayerPrefs.SetString(_dataPath, strData);
         }
     }
 
     public void SaveData()
     {
         var strData = JsonUtility.ToJson(Data);
-        PlayerPrefs.SetString(Application.productName + "_UserData", strData);
+        PlayerPrefs.SetString(_dataPath, strData);
     }
 
     public void ReloadData()
     {
-        if (PlayerPrefs.HasKey(Application.productName + "_UserData"))
+        if (PlayerPrefs.HasKey(_dataPath))
         {
-            var strData = PlayerPrefs.GetString(Application.productName + "_UserData");
+            var strData = PlayerPrefs.GetString(_dataPath);
             Data = JsonUtility.FromJson<UserData>(strData);
         }
     }

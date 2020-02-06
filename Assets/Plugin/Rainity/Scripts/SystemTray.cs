@@ -76,6 +76,16 @@ public class SystemTray : IDisposable
             }
         };
     }
+    public void AddSingleClickEvent(Action action)
+    {
+        trayIcon.Click += (object sender, EventArgs e) =>
+        {
+            if (action != null)
+            {
+                action();
+            }
+        };
+    }
 
     public void ShowNotification(int duration, string title, string text)
     {
