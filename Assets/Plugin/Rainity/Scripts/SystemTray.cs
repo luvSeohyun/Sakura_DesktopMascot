@@ -78,7 +78,7 @@ public class SystemTray : IDisposable
     }
     public void AddSingleClickEvent(Action action)
     {
-        trayIcon.Click += (object sender, EventArgs e) =>
+        trayIcon.MouseDown += (object sender, MouseEventArgs e) =>
         {
             if (action != null)
             {

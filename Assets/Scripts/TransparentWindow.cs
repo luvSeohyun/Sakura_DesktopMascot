@@ -143,6 +143,9 @@ public class TransparentWindow : MonoBehaviour
         }
     }
 
+private void LateUpdate() {
+        CursorPenetrate();
+    }
     void CursorPenetrate()
     {
         // 鼠标有位移时打射线，碰到角色则不穿透，否则窗口穿透
