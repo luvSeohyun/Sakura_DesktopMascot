@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -30,8 +31,22 @@ public class TransparentWindow : MonoBehaviour
     Texture2D _systemTrayTexture;
     Image _enableImage;
     Icon _systemTrayIcon;
-    int _xOffset = 0;
-    int _yOffset = 0;
+    GameObject[] _roleObjs;
+    public GameObject[] roleObjs => _roleObjs;
+    int _width = 0, _height = 0, _xOffset = 0, _yOffset = 0;
+    Config __config;
+    Config config
+    {
+        get
+        {
+            if (__config == null)
+            {
+                __config = FindObjectOfType<Config>();
+                Debug.Assert(__config != null, "Config is missing");
+            }
+            return __config;
+        }
+    }
 
     #region 导入API
 
@@ -79,7 +94,6 @@ public class TransparentWindow : MonoBehaviour
     private IntPtr HWND_TOPMOST = new IntPtr(-1);
     private IntPtr HWND_NOTOPMOST = new IntPtr(-2);
 
-    #endregion
 
     public IntPtr windowHandle
     {
@@ -94,18 +108,51 @@ public class TransparentWindow : MonoBehaviour
     }
 
     IntPtr _windowHandle = IntPtr.Zero;
+    #endregion
 
     void Start()
     {
+        GetSystemInfo();
+        if (!Application.isEditor)
+        {
+            Application.targetFrameRate = 80;
 
-        if (Application.isEditor) return;
-        Application.targetFrameRate = 80;
+            LoadIconFile(Application.persistentDataPath);
 
-        // 写入icon并读取
-        LoadIconFile(Application.persistentDataPath);
+            SetWindowStyle();
 
-        // 设置窗口大小、位置
-        SetWindowPosRect();
+            AddSystemTray();
+
+            AutoUpdate();
+        }
+
+        InitRole();
+    }
+
+    void GetSystemInfo()
+    {
+        // 获取多屏幕的总宽度和最高高度，以及任务栏offset
+        foreach (var screen in System.Windows.Forms.Screen.AllScreens)
+        {
+            _width += screen.Bounds.Width;
+            if (screen.Bounds.Height > _height)
+            {
+                _height = screen.Bounds.Height;
+            }
+            if (screen.Primary)
+            {
+                _xOffset = screen.WorkingArea.X;
+                _yOffset = screen.WorkingArea.Y;
+            }
+        }
+
+        if (_width == 0 || _height == 0)
+            Debug.LogError("获取分辨率失败");
+    }
+
+    void SetWindowStyle()
+    {
+        SetWindowPos(windowHandle, HWND_TOPMOST, _xOffset, _yOffset, _width, _height, 4);
 
         // Set properties of the window
         // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms633591%28v=vs.85%29.aspx
@@ -121,14 +168,51 @@ public class TransparentWindow : MonoBehaviour
         if (!DataModel.Instance.Data.isTopMost)
             SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
 
-
-        AddSystemTray();
-
-        AutoUpdate();
     }
 
-    bool _isInRoleRect = false;
-    Vector2Int _lastMousePos = Vector2Int.zero;
+    void InitRole()
+    {
+        Debug.Assert(config.roles.Length == (int)Roles.Count, "Roles枚举与Config数量不匹配");
+        _roleObjs = new GameObject[config.roles.Length];
+        // 实例化已启用的role
+        foreach (var item in DataModel.Instance.Data.roles)
+        {
+            if (item.enable)
+                _roleObjs[item.index] = InstantiateRole(item.index);
+        }
+    }
+
+    GameObject InstantiateRole(int roleIndex)
+    {
+        if ((int)roleIndex > config.roles.Length || config.roles.Length == 0)
+        {
+            Debug.LogError("未配置角色prefabs");
+            return null;
+        }
+        var data = DataModel.Instance.Data.roles[roleIndex];
+        var go = GameObject.Instantiate(config.roles[(int)roleIndex], data.rootPos, Quaternion.identity);
+        var role = go.transform.GetComponentInChildren<RoleCtrlBase>();
+        Debug.Assert(role != null, $"Role:{go.name} is missing {typeof(RoleCtrlBase)}");
+        role.transform.position = data.rolePos;
+        role.transform.rotation = data.roleRot;
+        return go;
+    }
+
+    // 获取从Windows桌面空间转换到Unity屏幕空间的鼠标位置
+    public Vector2Int GetMousePosW2U()
+    {
+        if (Application.isEditor)
+            return new Vector2Int((int)Input.mousePosition.x, (int)Input.mousePosition.y);
+
+        RECT rect = new RECT();
+        GetWindowRect(windowHandle, ref rect);
+        Vector2Int leftBottom = new Vector2Int(rect.Left, rect.Bottom);
+        var mousePos = new Vector2Int(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
+        leftBottom.y = _height - leftBottom.y;
+        mousePos.y = _height - mousePos.y;
+
+        return mousePos - leftBottom;
+    }
 
     public void SetMousePenetrate(bool isPenetrate)
     {
@@ -143,86 +227,11 @@ public class TransparentWindow : MonoBehaviour
         }
     }
 
-private void LateUpdate() {
-        CursorPenetrate();
-    }
-    void CursorPenetrate()
-    {
-        // 鼠标有位移时打射线，碰到角色则不穿透，否则窗口穿透
-        var pos = GetMousePosW2U();
-        if (GetMouseMove(_lastMousePos, pos) < 1) return;
-        var posV3 = new Vector3(pos.x, pos.y, 0);
-        RaycastHit hitInfo;
-        if (Physics.Raycast(Camera.main.ScreenPointToRay(posV3), out hitInfo, 100f, LayerMask.GetMask("WindowRect")))
-        {
-            // 鼠标进入角色范围
-            if (!_isInRoleRect)
-            {
-                var s = GetWindowLong(windowHandle, GWL_EXSTYLE);
-                SetWindowLong(windowHandle, GWL_EXSTYLE, (uint)(s & ~WS_EX_TRANSPARENT));
-                _isInRoleRect = true;
-            }
-        }
-        else
-        {
-            // 鼠标移出
-            if (_isInRoleRect)
-            {
-                var s = GetWindowLong(windowHandle, GWL_EXSTYLE);
-                SetWindowLong(windowHandle, GWL_EXSTYLE, (uint)(s | WS_EX_TRANSPARENT));
-                _isInRoleRect = false;
-            }
-        }
-        _lastMousePos = pos;
-    }
-
-    // 获取从Windows桌面空间转换到Unity屏幕空间的鼠标位置
-    public Vector2Int GetMousePosW2U()
-    {
-        RECT rect = new RECT();
-        GetWindowRect(windowHandle, ref rect);
-        Vector2Int leftBottom = new Vector2Int(rect.Left, rect.Bottom);
-        var mousePos = new Vector2Int(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
-        var screenHeight = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
-        leftBottom.y = screenHeight - leftBottom.y;
-        mousePos.y = screenHeight - mousePos.y;
-
-        return mousePos - leftBottom;
-    }
-
-    void SetWindowPosRect()
-    {
-        // 获取多屏幕的总宽度和最高高度，以及任务栏offset
-        int width = 0, height = 0;
-        foreach (var screen in System.Windows.Forms.Screen.AllScreens)
-        {
-            width += screen.Bounds.Width;
-            if (screen.Bounds.Height > height)
-            {
-                height = screen.Bounds.Height;
-            }
-            if (screen.Primary)
-            {
-                _xOffset = screen.WorkingArea.X;
-                _yOffset = screen.WorkingArea.Y;
-            }
-        }
-
-        if (width == 0 || height == 0)
-            Debug.LogError("获取分辨率失败");
-
-        SetWindowPos(windowHandle, HWND_TOPMOST, _xOffset, _yOffset, width, height, 4);
-    }
-
-    float GetMouseMove(Vector2 last, Vector2 current)
-    {
-        return Mathf.Abs(current.x - last.x) + Mathf.Abs(current.y - last.y);
-    }
-
     #region 托盘
 
     SystemTray _icon;
     System.Windows.Forms.ToolStripItem _topmost, _runOnStart;
+    System.Windows.Forms.ToolStripItem[] _roleItem;
 
     // 创建托盘图标、添加选项
     void AddSystemTray()
@@ -231,6 +240,8 @@ private void LateUpdate() {
         _topmost = _icon.AddItem("置顶显示", ToggleTopMost);
         _runOnStart = _icon.AddItem("开机自启", ToggleRunOnStartup);
         _icon.AddItem("重置位置", ResetPos);
+        _icon.AddSeparator();
+        AddRoleItem(_icon);
         _icon.AddSeparator();
         _icon.AddItem("查看文档", OpenDoc);
         _icon.AddItem("检查更新", CheckUpdate);
@@ -261,7 +272,6 @@ private void LateUpdate() {
         bool isTop = !DataModel.Instance.Data.isTopMost;
         DataModel.Instance.Data.isTopMost = isTop;
         DataModel.Instance.SaveData();
-        DataModel.Instance.ReloadData();
         SetWindowPos(windowHandle, isTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
         _topmost.Image = isTop ? _enableImage : null;
     }
@@ -271,7 +281,6 @@ private void LateUpdate() {
         bool isRun = !DataModel.Instance.Data.isRunOnStartup;
         DataModel.Instance.Data.isRunOnStartup = isRun;
         DataModel.Instance.SaveData();
-        DataModel.Instance.ReloadData();
         _runOnStart.Image = isRun ? _enableImage : null;
         if (isRun)
         {
@@ -281,7 +290,37 @@ private void LateUpdate() {
         {
             Rainity.RemoveFromStartup();
         }
+    }
 
+    void ToggleRole(int roleIndex)
+    {
+        if (_roleObjs[roleIndex] == null)
+        {
+            _roleObjs[roleIndex] = InstantiateRole(roleIndex);
+        }
+        else
+        {
+            Destroy(_roleObjs[roleIndex]);
+            _roleObjs[roleIndex] = null;
+        }
+        bool enable = _roleObjs[roleIndex] != null;
+        _roleItem[roleIndex].Image = enable ? _enableImage : null;
+        DataModel.Instance.Data.roles[roleIndex].enable = enable;
+        DataModel.Instance.SaveData();
+    }
+
+    void AddRoleItem(SystemTray tray)
+    {
+        _roleItem = new System.Windows.Forms.ToolStripItem[config.roles.Length];
+        foreach (var item in DataModel.Instance.Data.roles)
+        {
+            var i = item.index;
+            _roleItem[i] = tray.AddItem(((Roles)i).ToString(), () =>
+             {
+                 ToggleRole(i);
+             });
+            _roleItem[i].Image = item.enable ? _enableImage : null;
+        }
     }
 
     void Exit()
@@ -292,12 +331,17 @@ private void LateUpdate() {
 
     void ResetPos()
     {
-        var cc = FindObjectOfType<CameraCtrl>();
-        if (cc)
+        foreach (var role in FindObjectsOfType<RoleCtrlBase>())
         {
-            cc.ResetPos();
-            _icon.ShowNotification(3, "嘤嘤嘤", "嘤嘤怪回到了初始位置");
+            role.transform.parent.position = Vector3.zero;
+            role.transform.position = Vector3.zero;
+            role.transform.rotation = Quaternion.identity;
         }
+        DataModel.Instance.Data.roles = null;
+
+        DataModel.Instance.SaveData();
+        DataModel.Instance.ReloadData();
+        DataModel.Instance.SaveData();
     }
 
     void OpenDoc()
@@ -305,8 +349,9 @@ private void LateUpdate() {
         Application.OpenURL("https://github.com/Jason-Ma-233/Sakura_DesktopMascot");
     }
 
-    void AutoUpdate()
+    IEnumerator AutoUpdate()
     {
+        yield return new WaitForSeconds(1);
         // 写入版本文件以供py读取
         File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "\\" + "Ver.data", Application.version + "\n"
                                                                                    + Application.productName + ".exe");

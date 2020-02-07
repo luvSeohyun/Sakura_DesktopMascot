@@ -40,21 +40,18 @@ public class CameraCtrl : MonoBehaviour
     private void Awake()
     {
         Application.targetFrameRate = 120;
-        DataModel.Instance.Init(_sakura.position, _sakura.rotation, transform.position, transform.rotation);
+        // DataModel.Instance.Init(_sakura.position, _sakura.rotation, transform.position, transform.rotation);
         var data = DataModel.Instance.Data;
-        // 累计误差达到一定值则重置位置
-        if (data.cameraPos.magnitude + data.rolePos.magnitude > 10000f)
-            return;
         // 保存原始位置
         _roleOrgPos = _sakura.position;
         _roleOrgRot = _sakura.rotation;
         _cameraOrgPos = transform.position;
         _cameraOrgRot = transform.rotation;
         // 读取位置
-        transform.position = data.cameraPos;
-        transform.rotation = data.cameraRot;
-        _sakura.position = data.rolePos;
-        _sakura.rotation = data.roleRot;
+        // transform.position = data.cameraPos;
+        // transform.rotation = data.cameraRot;
+        // _sakura.position = data.rolePos;
+        // _sakura.rotation = data.roleRot;
     }
 
     private void LateUpdate()
@@ -79,7 +76,7 @@ public class CameraCtrl : MonoBehaviour
             // 使用上一帧的滚轮计算摄像机的位移并判断此帧为松手
             || (_lastScroll != 0 && Input.mouseScrollDelta.y == 0))
         {
-            DataModel.Instance.UpdateTransformData(_sakura, transform);
+            // DataModel.Instance.UpdateTransformData(_sakura, transform);
             DataModel.Instance.SaveData();
         }
         _lastScroll = Input.mouseScrollDelta.y;

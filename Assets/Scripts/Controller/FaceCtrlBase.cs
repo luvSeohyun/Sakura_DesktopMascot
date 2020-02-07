@@ -12,12 +12,19 @@ public abstract class FaceCtrlBase : MonoBehaviour
     protected float _timer;
     float _eyeAutoBlinkTimer = 0;
     float[] _spectrumData = new float[128];
+    protected FaceManager _faceManager;
+
 
     protected abstract void Start();
     protected abstract void Update();
     public virtual void OnValidate()
     {
         Start();
+    }
+    void Awake()
+    {
+        _faceManager = FindObjectOfType<FaceManager>();
+        Debug.Assert(_faceManager != null, "FaceManager单例丢失，请先在场景中创建");
     }
 
     /// <summary>

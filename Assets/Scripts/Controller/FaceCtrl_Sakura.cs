@@ -7,7 +7,6 @@ public class FaceCtrl_Sakura : FaceCtrlBase
 {
     //---------- Data --------------
     public FaceData faceData;
-    public FaceManager faceManager;
     public AudioSource audioPlayer;
 
     //---------- Material ----------
@@ -53,8 +52,8 @@ public class FaceCtrl_Sakura : FaceCtrlBase
 
     protected override void Start()
     {
-        if (faceData && faceManager && matEye_L && matEye_R && matMouth)
-            faceManager.AddFace(new Face(matEye_L, matEye_R, matMouth, faceData,
+        if (faceData && _faceManager && matEye_L && matEye_R && matMouth)
+            _faceManager.AddFace(new Face(matEye_L, matEye_R, matMouth, faceData,
                                          () => { return _valueEye_L; },
                                          () => { return _valueEye_R; },
                                          () => { return _valueMouth; }),

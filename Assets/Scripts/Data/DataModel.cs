@@ -5,13 +5,20 @@ using System;
 
 public class UserData
 {
-    public Vector3 rolePos;
-    public Quaternion roleRot;
-    public Vector3 cameraPos;
-    public Quaternion cameraRot;
-    public bool isTopMost;
-    public bool isRunOnStartup;
+    [Serializable]
+    public class RolePos
+    {
+        public int index;
+        public bool enable;
+        public Vector3 rootPos;
+        public Vector3 rolePos;
+        public Quaternion roleRot;
+    }
+    public string dataVer;
+    public bool isTopMost = false;
+    public bool isRunOnStartup = false;
     public long updateTime;
+    public RolePos[] roles;
 }
 
 public class DataModel
@@ -23,61 +30,86 @@ public class DataModel
     }
     DataModel() { }
 
-    public UserData Data { get; set; }
-    readonly string _dataPath = Application.productName + "_UserData";
-    readonly string _dataVersion = "2.6";// 当大改数据结构时手动更新版本以重新生成数据
-
-    public void Init(Vector3 _rolePos, Quaternion _roleRot, Vector3 _cameraPos, Quaternion _cameraRot)
+    UserData _data;
+    public UserData Data
     {
-        if (PlayerPrefs.HasKey(_dataPath))
+        get
         {
-            var strData = PlayerPrefs.GetString(_dataPath);
-            Data = JsonUtility.FromJson<UserData>(strData);
-            // 版本新增值初始化
-            if (Data.updateTime == 0)
+            if (_data == null)
             {
-                Data.updateTime = DateTime.Now.ToFileTime();
-                SaveData();
+                Init();
             }
+            return _data;
+        }
+        set
+        {
+            _data = value;
+        }
+    }
+
+    void Init()
+    {
+        if (PlayerPrefs.HasKey(Config.UserDataPath))
+        {
+            var strData = PlayerPrefs.GetString(Config.UserDataPath);
+            _data = JsonUtility.FromJson<UserData>(strData);
         }
         else
         {
-            Data = new UserData()
-            {
-                rolePos = _rolePos,
-                roleRot = _roleRot,
-                cameraPos = _cameraPos,
-                cameraRot = _cameraRot,
-                isTopMost = false,
-                isRunOnStartup = false,
-                updateTime = DateTime.Now.ToFileTime()
-            };
-            var strData = JsonUtility.ToJson(Data);
-            PlayerPrefs.SetString(_dataPath, strData);
+            // 首次运行
+            _data = new UserData();
         }
+        // 更新
+        if (_data.dataVer != Config.UserDataVer)
+        {
+            PlayerPrefs.DeleteAll();
+            _data.dataVer = Config.UserDataVer;
+            _data.updateTime = DateTime.Now.ToFileTime();
+        }
+        if (_data.roles == null || _data.roles.Length < (int)Roles.Count || _data.roles[0].rolePos == null)
+        {
+            _data.roles = new UserData.RolePos[(int)Roles.Count];
+            for (int i = 0; i < _data.roles.Length; i++)
+            {
+                _data.roles[i] = new UserData.RolePos();
+                _data.roles[i].index = i;
+                _data.roles[i].enable = true;
+                _data.roles[i].rolePos = Vector3.zero;
+                _data.roles[i].rootPos = Vector3.zero;
+                _data.roles[i].roleRot = Quaternion.identity;
+            }
+        }
+        SaveData();
     }
 
     public void SaveData()
     {
         var strData = JsonUtility.ToJson(Data);
-        PlayerPrefs.SetString(_dataPath, strData);
+        PlayerPrefs.SetString(Config.UserDataPath, strData);
     }
 
     public void ReloadData()
     {
-        if (PlayerPrefs.HasKey(_dataPath))
+        if (PlayerPrefs.HasKey(Config.UserDataPath))
         {
-            var strData = PlayerPrefs.GetString(_dataPath);
+            var strData = PlayerPrefs.GetString(Config.UserDataPath);
             Data = JsonUtility.FromJson<UserData>(strData);
         }
     }
 
-    public void UpdateTransformData(Transform role, Transform camera)
+    public void UpdateTransformData(GameObject[] roles)
     {
-        Data.rolePos = role.position;
-        Data.roleRot = role.rotation;
-        Data.cameraPos = camera.position;
-        Data.cameraRot = camera.rotation;
+        Debug.Assert(roles.Length > 0 && roles.Length == Data.roles.Length, "TransparentWindow.roleObjs与DataModel.Data长度不匹配");
+        for (int i = 0; i < roles.Length; i++)
+        {
+            if (roles[i] != null)
+            {
+                Data.roles[i].rootPos = roles[i].transform.position;
+                var role = roles[i].transform.GetComponentInChildren<RoleCtrlBase>().transform;
+                Data.roles[i].rolePos = role.position;
+                Data.roles[i].roleRot = role.rotation;
+            }
+        }
     }
 }
 

@@ -1,18 +1,157 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Drawing;
+using System.IO;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class InputManeger : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] float _horRotSpeed = 5f;
+    [SerializeField] float _verRotSpeed = 3f;
+    [SerializeField] [Range(30, 90)] float _elevation = 50f;
+    [SerializeField] float _moveSpeed = 5f;
+    [SerializeField] float _nearestDis = 10f;
+    [SerializeField] float _farthestDis = 50f;
+
+    float _lastScroll = 0f, _distance = 0f, _rotate = 0f, _viewAngle = 0f;
+    Vector3 _screen2WorldOffset = Vector3.zero;
+
+    TransparentWindow window;
+    bool _isInRoleRect = false;
+    Vector2Int _lastMousePos = Vector2Int.zero;
+    Transform _root, _rotCenter, _role;
+
+    private void Start()
     {
-        
+        window = FindObjectOfType<TransparentWindow>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void LateUpdate()
     {
-        
+        if (!Input.GetMouseButton(1) && !Input.GetMouseButton(2))
+            CursorPenetrate();
+
+        if (_root == null)
+            return;
+
+        // 旋转中
+        if (Input.GetMouseButton(1))
+            Rotating();
+        // 缩放中
+        if (_lastScroll != 0)
+            Scaling();
+
+        // 拖动平移开始
+        if (Input.GetMouseButtonDown(2))
+            _screen2WorldOffset = GetScreen2WorldOffset();
+        // 拖动平移中
+        if (Input.GetMouseButton(2))
+            Translation();
+
+        // 松开，保存
+        if (Input.GetMouseButtonUp(1)
+            || Input.GetMouseButtonUp(2)
+            // 使用上一帧的滚轮计算摄像机的位移并判断此帧为松手
+            || (_lastScroll != 0 && Input.mouseScrollDelta.y == 0))
+        {
+            DataModel.Instance.UpdateTransformData(window.roleObjs);
+            DataModel.Instance.SaveData();
+        }
+        _lastScroll = Input.mouseScrollDelta.y;
+
     }
+
+    private void Scaling()
+    {
+        // 距离
+        _distance = Vector3.Distance(Camera.main.transform.position, _role.position);
+        if (_lastScroll > 0 ? _distance > _nearestDis : _distance < _farthestDis)
+        {
+            // 向朝向角色的方向移动
+            var dir = Vector3.Normalize(_rotCenter.position - Camera.main.transform.position);
+            _root.Translate(dir * _lastScroll * _moveSpeed * Time.deltaTime * _distance * -0.75f, Space.World);
+        }
+    }
+
+    private void Rotating()
+    {
+        // 角色绕旋转中心转
+        _role.RotateAround(_rotCenter.position, _role.up
+        , Input.GetAxis("Mouse X") * Time.deltaTime * _horRotSpeed * -100);
+        _rotate = Input.GetAxis("Mouse Y");
+        // 垂直正方向与至摄像机向量角度
+        _viewAngle = 180 - (Vector3.Dot(_role.up, Vector3.Normalize(Camera.main.transform.position - _role.position)) + 1) * 90;
+        if (_rotate > 0 ?
+            _viewAngle < (90 + _elevation) :
+            _viewAngle > (90 - _elevation))
+        {
+            _role.RotateAround(_rotCenter.position, Vector3.right, _rotate * Time.deltaTime * _verRotSpeed * -100);
+        }
+    }
+
+    // 第一帧计算鼠标点到角色位置之差
+    Vector3 GetScreen2WorldOffset()
+    {
+        var mousePosV2 = TransparentWindow.Instance.GetMousePosW2U();
+        var rolePos = Camera.main.WorldToScreenPoint(_root.position);
+        return rolePos - new Vector3(mousePosV2.x, mousePosV2.y, 0);
+    }
+
+    // 再根据鼠标位置加上offset算出角色位置
+    void Translation()
+    {
+        var mousePosV2 = TransparentWindow.Instance.GetMousePosW2U();
+        var newPos = new Vector3(mousePosV2.x, mousePosV2.y, 0) + _screen2WorldOffset;
+        // 限制上下位置
+        // var rotateTargetPos = Camera.main.WorldToScreenPoint(_rotateTarget.position);
+        // var rolePos = Camera.main.WorldToScreenPoint(_sakura.position);
+        // var dis = (new Vector2(rotateTargetPos.x, rotateTargetPos.y) - new Vector2(rolePos.x, rolePos.y)).magnitude;
+        // newPos.x = Mathf.Clamp(newPos.x, 0, System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width);
+        // newPos.y = Mathf.Clamp(newPos.y, 0 - dis, System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height - dis);
+        _root.position = Camera.main.ScreenToWorldPoint(newPos);
+
+    }
+
+
+
+    void CursorPenetrate()
+    {
+        // 鼠标有位移时打射线，碰到角色则不穿透，否则窗口穿透
+        var pos = window.GetMousePosW2U();
+        if (GetMouseMove(_lastMousePos, pos) < 1) return;
+        var posV3 = new Vector3(pos.x, pos.y, 0);
+        RaycastHit hitInfo;
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(posV3), out hitInfo, 1000f, LayerMask.GetMask("WindowRect")))
+        {
+            // 鼠标进入角色范围
+            if (!_isInRoleRect)
+            {
+                window.SetMousePenetrate(false);
+                _isInRoleRect = true;
+            }
+            _role = hitInfo.transform;
+            _root = hitInfo.transform.parent;
+            _rotCenter = hitInfo.transform.GetComponent<RoleCtrlBase>().rotationCenter.transform;
+        }
+        else
+        {
+            // 鼠标移出
+            if (_isInRoleRect)
+            {
+                window.SetMousePenetrate(true);
+                _isInRoleRect = false;
+            }
+            _role = null;
+            _root = null;
+            _rotCenter = null;
+        }
+        _lastMousePos = pos;
+    }
+
+    float GetMouseMove(Vector2 last, Vector2 current)
+    {
+        return Mathf.Abs(current.x - last.x) + Mathf.Abs(current.y - last.y);
+    }
+
 }
