@@ -97,17 +97,18 @@ public class DataModel
         }
     }
 
-    public void UpdateTransformData(GameObject[] roles)
+    public void UpdateTransformData(ObjPoolManeger pool)
     {
-        Debug.Assert(roles.Length > 0 && roles.Length == Data.roles.Length, "TransparentWindow.roleObjs与DataModel.Data长度不匹配");
-        for (int i = 0; i < roles.Length; i++)
+        var rootPool = pool.rootPool;
+        var rolePool = pool.rolePool;
+
+        for (int i = 0; i < rootPool.Length; i++)
         {
-            if (roles[i] != null)
+            if (rootPool[i] != null && rolePool[i] != null)
             {
-                Data.roles[i].rootPos = roles[i].transform.position;
-                var role = roles[i].transform.GetComponentInChildren<RoleCtrlBase>().transform;
-                Data.roles[i].rolePos = role.position;
-                Data.roles[i].roleRot = role.rotation;
+                Data.roles[i].rootPos = rootPool[i].transform.position;
+                Data.roles[i].rolePos = rolePool[i].transform.position;
+                Data.roles[i].roleRot = rolePool[i].transform.rotation;
             }
         }
     }

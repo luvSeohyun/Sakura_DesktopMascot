@@ -52,7 +52,7 @@
         
         [Header(OutLine)]
         _Outline_Color ("Outline Color", Color) = (0.5, 0.5, 0.5, 1)
-        [PowerSlider(2)] _Outline_Width ("Width：宽度", Range(0, 30)) = 0
+        _Outline_Width ("Width：宽度", float) = 0
         [PowerSlider(2)] _Offset_Z ("Offset Z：深度偏移", Range(0, 100)) = 0
     }
     SubShader

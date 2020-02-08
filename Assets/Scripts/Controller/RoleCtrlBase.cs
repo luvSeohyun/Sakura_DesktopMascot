@@ -11,8 +11,12 @@ public abstract class RoleCtrlBase : MonoBehaviour
     AudioSource _audioPlayer;
     public GameObject rotationCenter;
 
+    public bool isIdleState => _animator.GetCurrentAnimatorStateInfo(0).IsName(idleStateName) &&
+    _animator.GetNextAnimatorClipInfo(0).Length == 0;
+
     protected abstract string idleStateName { get; }
-    protected abstract void GetAnimationNames(out List<string> animationNames_head, out List<string> animationNames_normal,
+    protected abstract float transitionDuration { get; }
+    protected abstract void GetAnimation(out List<string> animationNames_head, out List<string> animationNames_normal,
     out List<string> animationNames_special, out List<string> animationNames_undef);
     protected abstract AudioClip[] GetAudioClips();
 
@@ -22,7 +26,7 @@ public abstract class RoleCtrlBase : MonoBehaviour
     void Start()
     {
         // 读取动作
-        GetAnimationNames(out _aniHead, out _aniNormal, out _aniSpecial, out _aniUndef);
+        GetAnimation(out _aniHead, out _aniNormal, out _aniSpecial, out _aniUndef);
         Debug.Assert(_aniHead.Count + _aniNormal.Count + _aniSpecial.Count + _aniUndef.Count > 0, "未读取到动作");
         // 读取音频
         var audio = GetAudioClips();
@@ -42,14 +46,13 @@ public abstract class RoleCtrlBase : MonoBehaviour
 
     void Update()
     {
-        bool isIdle = _animator.GetNextAnimatorClipInfo(0).Length == 0 &&
-        _animator.GetCurrentAnimatorStateInfo(0).IsName(idleStateName);
-        if ((Input.GetMouseButtonUp(0)) && isIdle)
+        if ((Input.GetMouseButtonUp(0)) && isIdleState)
         {
             RaycastHit hitInfo;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo, 1000f, LayerMask.GetMask("Gal")))
             {
-                Touch(hitInfo.collider.tag);
+                if (hitInfo.transform.IsChildOf(transform))
+                    Touch(hitInfo.collider.tag);
             }
         }
         UpdateEvent();
@@ -74,7 +77,8 @@ public abstract class RoleCtrlBase : MonoBehaviour
         {
             aniName = RandomIndex(_aniUndef);
         }
-        _animator.CrossFade(aniName, 0.5f, 0);
+        if (aniName != null)
+            _animator.CrossFade(aniName, transitionDuration, 0);
     }
 
     // 触发音频
@@ -124,6 +128,16 @@ public abstract class RoleCtrlBase : MonoBehaviour
     {
         List<string> names = new List<string>();
         foreach (var item in Resources.LoadAll<AnimationClip>(path))
+        {
+            names.Add(item.name);
+        }
+        return names;
+    }
+
+    protected List<string> LoadAniName(AnimationClip[] clips)
+    {
+        List<string> names = new List<string>();
+        foreach (var item in clips)
         {
             names.Add(item.name);
         }

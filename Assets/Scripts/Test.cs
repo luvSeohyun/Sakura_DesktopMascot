@@ -15,6 +15,7 @@ public class Test : MonoBehaviour
         // PlayerPrefs.DeleteAll();
         // Debug.Log((DataModel.Instance.Data));
         // Debug.Log(JsonUtility.ToJson(DataModel.Instance.Data));
-
+        var v = Resources.LoadAll<AnimationClip>("AnimationClip/Herugaa");
+        Debug.Log(v.Length);
     }
 }
