@@ -47,7 +47,7 @@ public class DataModel
         }
     }
 
-    void Init()
+    public void Init()
     {
         if (PlayerPrefs.HasKey(Config.UserDataPath))
         {

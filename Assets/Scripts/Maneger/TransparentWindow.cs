@@ -66,6 +66,8 @@ public class TransparentWindow : MonoBehaviour
     const uint WS_EX_LAYERED = 0x00080000;
     const uint WS_EX_TRANSPARENT = 0x00000020;
     const uint WS_EX_TOOLWINDOW = 0x00000080;//隐藏图标
+    private IntPtr HWND_BOTTOM = new IntPtr(1);
+    private IntPtr HWND_TOP = new IntPtr(0);
     private IntPtr HWND_TOPMOST = new IntPtr(-1);
     private IntPtr HWND_NOTOPMOST = new IntPtr(-2);
 
@@ -89,7 +91,7 @@ public class TransparentWindow : MonoBehaviour
     {
         _config = FindObjectOfType<Config>();
         _pool = FindObjectOfType<ObjPoolManeger>();
-        
+
         GetSystemInfo();
         if (!Application.isEditor)
         {
@@ -155,7 +157,7 @@ public class TransparentWindow : MonoBehaviour
         foreach (var item in DataModel.Instance.Data.roles)
         {
             if (item.enable)
-                _pool.AddRole(InstantiateRole(item.index),item.index);
+                _pool.AddRole(InstantiateRole(item.index), item.index);
         }
     }
 
@@ -196,6 +198,27 @@ public class TransparentWindow : MonoBehaviour
         else
         {
             SetWindowLong(windowHandle, GWL_EXSTYLE, (uint)(s & ~WS_EX_TRANSPARENT));
+        }
+    }
+
+    public void SetBottom(bool isBottom)
+    {
+        if (isBottom)
+        {
+            SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
+            SetWindowPos(windowHandle, HWND_BOTTOM, 0, 0, 0, 0, 1 | 2);
+        }
+        else
+        {
+            SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
+            if (DataModel.Instance.Data.isTopMost)
+            {
+                SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 2);
+            }
+            else
+            {
+                SetWindowPos(windowHandle, HWND_TOP, 0, 0, 0, 0, 1 | 2);
+            }
         }
     }
 
@@ -244,7 +267,8 @@ public class TransparentWindow : MonoBehaviour
         bool isTop = !DataModel.Instance.Data.isTopMost;
         DataModel.Instance.Data.isTopMost = isTop;
         DataModel.Instance.SaveData();
-        SetWindowPos(windowHandle, isTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
+        if (_pool.IsAnyRoleEnable())
+            SetWindowPos(windowHandle, isTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
         _topmost.Image = isTop ? _enableImage : null;
     }
 
@@ -268,7 +292,7 @@ public class TransparentWindow : MonoBehaviour
     {
         if (_pool.rootPool[roleIndex] == null)
         {
-            _pool.AddRole(InstantiateRole(roleIndex),roleIndex);
+            _pool.AddRole(InstantiateRole(roleIndex), roleIndex);
         }
         else
         {
@@ -302,8 +326,11 @@ public class TransparentWindow : MonoBehaviour
 
     void ResetPos()
     {
-        foreach (var role in FindObjectsOfType<RoleCtrlBase>())
+        foreach (var role in _pool.rolePool)
         {
+            if (role == null)
+                continue;
+
             role.transform.parent.position = Vector3.zero;
             role.transform.position = Vector3.zero;
             role.transform.rotation = Quaternion.identity;
@@ -311,8 +338,7 @@ public class TransparentWindow : MonoBehaviour
         DataModel.Instance.Data.roles = null;
 
         DataModel.Instance.SaveData();
-        DataModel.Instance.ReloadData();
-        DataModel.Instance.SaveData();
+        DataModel.Instance.Init();
     }
 
     void OpenDoc()

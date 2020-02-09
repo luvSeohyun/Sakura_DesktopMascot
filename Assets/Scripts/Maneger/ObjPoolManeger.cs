@@ -41,4 +41,17 @@ public class ObjPoolManeger : MonoBehaviour
             _rolePool[index] = null;
         }
     }
+
+    public bool IsAnyRoleEnable()
+    {
+        foreach (var item in _rootPool)
+        {
+            if (item != null)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

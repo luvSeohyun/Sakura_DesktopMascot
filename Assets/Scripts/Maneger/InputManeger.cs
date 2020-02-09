@@ -25,6 +25,7 @@ public class InputManeger : MonoBehaviour
     Transform _root, _rotCenter, _role;
     PostProcessLayer ppl;
     CTAA_PC _ctaa;
+    GameObject _camera;
 
     private void Start()
     {
@@ -34,10 +35,30 @@ public class InputManeger : MonoBehaviour
         Debug.Assert(ppl != null, $"{typeof(PostProcessLayer)}组件丢失");
         _ctaa = FindObjectOfType<CTAA_PC>();
         Debug.Assert(_ctaa != null, $"{typeof(CTAA_PC)}组件丢失");
+        _camera = Camera.main.gameObject;
     }
 
     private void LateUpdate()
     {
+        // 判断当前是否有桌宠在场，没有则停止计算和渲染
+        if (!_pool.IsAnyRoleEnable())
+        {
+            if (_camera.activeSelf)
+            {
+                _camera.SetActive(false);
+                _window.SetBottom(true);
+            }
+            return;
+        }
+        else
+        {
+            if (!_camera.activeSelf)
+            {
+                _camera.SetActive(true);
+                _window.SetBottom(false);
+            }
+        }
+
         if (!Input.GetMouseButton(1) && !Input.GetMouseButton(2))
             CursorPenetrate();
 
@@ -83,6 +104,7 @@ public class InputManeger : MonoBehaviour
 
     }
 
+
     private void Scaling()
     {
         // 距离
@@ -91,7 +113,7 @@ public class InputManeger : MonoBehaviour
         {
             // 向朝向角色的方向移动
             var dir = Vector3.Normalize(_rotCenter.position - Camera.main.transform.position);
-            _root.Translate(dir * _lastScroll * _moveSpeed * Time.deltaTime * _distance * -0.75f, Space.World);
+            _root.Translate(dir * _lastScroll * _moveSpeed * Time.deltaTime * Mathf.Pow(_distance, 1.15f) * -0.75f, Space.World);
         }
     }
 
