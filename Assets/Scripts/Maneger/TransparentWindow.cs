@@ -103,7 +103,7 @@ public class TransparentWindow : MonoBehaviour
 
             AddSystemTray();
 
-            AutoUpdate();
+            StartCoroutine("AutoUpdate");
         }
 
         InitRole();
@@ -374,7 +374,7 @@ public class TransparentWindow : MonoBehaviour
 
     void ShowRole()
     {
-        if (DataModel.Instance.Data.isTopMost)
+        if (DataModel.Instance.Data.isTopMost||!_pool.IsAnyRoleEnable())
             return;
 
         SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 2);
