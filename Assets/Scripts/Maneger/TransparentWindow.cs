@@ -93,17 +93,17 @@ public class TransparentWindow : MonoBehaviour
         _pool = FindObjectOfType<ObjPoolManeger>();
 
         GetSystemInfo();
-        if (!Application.isEditor)
+        if (!Application.isEditor)  //是否为编辑器
         {
-            Application.targetFrameRate = 80;
+            Application.targetFrameRate = 144;  //帧率设置
 
-            LoadIconFile(Application.persistentDataPath);
+            LoadIconFile(Application.persistentDataPath);   //用于存档
 
             SetWindowStyle();
 
             AddSystemTray();
 
-            StartCoroutine("AutoUpdate");
+            StartCoroutine("AutoUpdate");   //等待一个新协程结束，有限状态机（可异步）
         }
 
         InitRole();
@@ -161,7 +161,7 @@ public class TransparentWindow : MonoBehaviour
         }
     }
 
-    GameObject InstantiateRole(int roleIndex)
+    GameObject InstantiateRole(int roleIndex)   //实例化
     {
         var data = DataModel.Instance.Data.roles[roleIndex];
         var go = GameObject.Instantiate(_config.roles[(int)roleIndex], data.rootPos, Quaternion.identity);

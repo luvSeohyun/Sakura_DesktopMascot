@@ -4,7 +4,7 @@
     {
         _MainTex ("Texture", 2D) = "white" { }
         _Color ("Color", Color) = (1, 1, 1, 1)
-        _gamma ("Gamma", Range(1, 6)) = 2.5
+        _gamma ("Gamma", Range(1, 6)) = 2.2
     }
     SubShader
     {

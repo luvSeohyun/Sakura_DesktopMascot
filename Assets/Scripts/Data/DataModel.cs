@@ -74,9 +74,9 @@ public class DataModel
                 _data.roles[i] = new UserData.RolePos();
                 _data.roles[i].index = i;
                 _data.roles[i].enable = true;
-                _data.roles[i].rolePos = Vector3.zero;
+                _data.roles[i].rolePos = Vector3.zero;  //三维向量
                 _data.roles[i].rootPos = Vector3.zero;
-                _data.roles[i].roleRot = Quaternion.identity;
+                _data.roles[i].roleRot = Quaternion.identity;   //四元数(x,y,z,w)
             }
         }
         SaveData();
